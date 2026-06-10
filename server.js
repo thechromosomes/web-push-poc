@@ -84,9 +84,7 @@ app.post('/api/send-notification', async (req, res) => {
       await webpush.sendNotification(sub, payload);
       results.sent++;
     } catch (err) {
-      console.log(err)
-      res.render(err)
-      return
+      console.error(`❌ Failed to send notification:`, err.message);
       results.failed++;
       results.errors.push(err.message);
       // Clean up expired/invalid subscriptions
