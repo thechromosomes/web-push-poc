@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Model Routing Matrix — SDLC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=Spline+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0d0f12;
+    --panel: #15181d;
+    --panel-2: #1b1f26;
+    --line: #2a2f38;
+    --ink: #e8e6e1;
+    --ink-dim: #9aa0aa;
+    --accent: #d4a23a;
+    --accent-2: #4ea1d3;
+    --t1: #5dba7d;
+    --t2: #4ea1d3;
+    --t3: #e0a13c;
+    --t4: #d36a5e;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% -10%, rgba(212,162,58,0.08), transparent 40%),
+      radial-gradient(circle at 90% 5%, rgba(78,161,211,0.06), transparent 45%);
+    color: var(--ink);
+    font-family: 'Spline Sans', sans-serif;
+    line-height: 1.55;
+    padding: 0 0 80px;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: 56px 0 30px;
+    margin-bottom: 8px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 900;
+    font-size: clamp(34px, 6vw, 58px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+  }
+  h1 em { font-style: italic; color: var(--accent); }
+  .sub {
+    color: var(--ink-dim);
+    font-size: 16px;
+    margin-top: 16px;
+    max-width: 640px;
+  }
+  .meta {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    margin-top: 22px;
+    letter-spacing: 0.04em;
+  }
+  .meta span { color: var(--accent-2); }
+
+  nav.tabs {
+    display: flex;
+    gap: 4px;
+    margin: 34px 0 30px;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  .tab {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    background: none;
+    border: none;
+    color: var(--ink-dim);
+    padding: 12px 18px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .panel { display: none; animation: fade 0.4s ease; }
+  .panel.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 26px;
+    margin: 8px 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .lead { color: var(--ink-dim); margin-bottom: 24px; font-size: 15px; max-width: 720px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0 30px;
+    font-size: 13.5px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  thead th {
+    background: var(--panel-2);
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(212,162,58,0.04); }
+  td.role { font-weight: 600; white-space: nowrap; }
+  td .grp { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); letter-spacing: 0.05em; display:block; margin-top:2px; }
+
+  .model {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    padding: 3px 7px;
+    border-radius: 5px;
+    display: inline-block;
+    white-space: nowrap;
+    margin: 1px 0;
+  }
+  .model.esc { border-color: rgba(224,161,60,0.4); color: var(--t3); }
+  .arrow { color: var(--ink-dim); font-family: var(--mono); padding: 0 4px; }
+
+  .tier {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+    display:inline-block;
+  }
+  .tier-1 { background: rgba(93,186,125,0.15); color: var(--t1); }
+  .tier-2 { background: rgba(78,161,211,0.15); color: var(--t2); }
+  .tier-3 { background: rgba(224,161,60,0.15); color: var(--t3); }
+  .tier-4 { background: rgba(211,106,94,0.15); color: var(--t4); }
+  .tval { font-family: var(--mono); font-size: 11px; color: var(--ink-dim); display:block; margin-top:4px; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin: 0 0 26px;
+    font-family: var(--mono); font-size: 11.5px;
+  }
+  .legend .li {
+    background: var(--panel); border:1px solid var(--line);
+    padding: 8px 12px; border-radius: 8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .legend .li b { color: var(--ink); font-weight:600; }
+  .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .d1{background:var(--t1)} .d2{background:var(--t2)} .d3{background:var(--t3)} .d4{background:var(--t4)}
+
+  .callout {
+    background: var(--panel);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 18px 22px;
+    margin: 26px 0;
+  }
+  .callout h3 {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .callout p { font-size: 14px; color: var(--ink); }
+  .callout p + p { margin-top: 8px; }
+
+  footer {
+    margin-top: 50px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.04em;
+  }
+  .disc { font-size: 11.5px; color: var(--ink-dim); margin-top: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">SDLC Operating Model &middot; LLM Routing</div>
+    <h1>AI Model<br><em>Routing Matrix</em></h1>
+    <p class="sub">Role- and task-based model assignment for an AI-enabled SDLC, with cost tier and value guidance for each route.</p>
+    <p class="meta">REVISED <span>07 JUN 2026</span> &middot; model names &amp; pricing current as of this date</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-p="role">By Role</button>
+    <button class="tab" data-p="task">By Task</button>
+    <button class="tab" data-p="cost">Cost Reference</button>
+    <button class="tab" data-p="noncursor">Non-Cursor Swap</button>
+    <button class="tab" data-p="copilot">GitHub Copilot</button>
+  </nav>
+
+  <section class="panel active" id="role">
+    <h2>Usage by Role</h2>
+    <p class="lead">Primary model per discipline. "High" / "Fast" denote reasoning-effort and latency tiers. Cost tier reflects per-token price band (see Cost Reference).</p>
+    <div class="legend">
+      <div class="li"><span class="dot d1"></span><b>T1 Economy</b> ~$0.50&ndash;2.50/M</div>
+      <div class="li"><span class="dot d2"></span><b>T2 Standard</b> ~$3/$15/M</div>
+      <div class="li"><span class="dot d3"></span><b>T3 Premium</b> ~$5/$25&ndash;30/M</div>
+      <div class="li"><span class="dot d4"></span><b>T4 Top-end</b> Opus/GPT Pro</div>
+    </div>
+    <table>
+      <thead><tr><th>Role</th><th>Model</th><th>Cost tier</th><th>Use for</th></tr></thead>
+      <tbody>
+        <tr><td class="role">BA</td><td><span class="model">Composer 2.5</span> / <span class="model">Sonnet 4.6</span></td><td><span class="tier tier-1">T1&ndash;T2</span><span class="tval">High value &middot; text-heavy</span></td><td>BRDs, user stories, gap analysis, requirement tracing across the repo. BAs rarely need code models.</td></tr>
+        <tr><td class="role">Architect</td><td><span class="model">Composer 2.5</span> <span class="arrow">&rarr;</span> <span class="model esc">Opus 4.8 High</span></td><td><span class="tier tier-3">T1 &rarr; T4</span><span class="tval">Explore cheap, finalise premium</span></td><td>System design, ADRs, trade-off analysis, threat modelling, repo audits. Explore with Composer; finalise on Opus 4.8 (leads agentic + long-context).</td></tr>
+        <tr><td class="role">Dev <span class="grp">scaffolding</span></td><td><span class="model">Composer 2.5</span></td><td><span class="tier tier-1">T1</span><span class="tval">Best $/token for rote work</span></td><td>Boilerplate, CRUD scaffolding, docstrings, renaming, formatting.</td></tr>
+        <tr><td class="role">Dev <span class="grp">feature</span></td><td><span class="model">Sonnet 4.6 High</span></td><td><span class="tier tier-2">T2</span><span class="tval">Best daily-driver value</span></td><td>Feature implementation, API integration, unit tests, PR summaries. ~98% of Opus coding quality at a fraction of cost.</td></tr>
+        <tr><td class="role">Dev <span class="grp">hard / legacy</span></td><td><span class="model esc">Opus 4.8 High</span> / <span class="model esc">GPT-5.5 High</span></td><td><span class="tier tier-3">T3&ndash;T4</span><span class="tval">Escalate after 2 Sonnet fails</span></td><td>Complex bugs, concurrency, large legacy/RPG refactors. Opus for reasoning depth; GPT-5.5 for terminal-heavy work.</td></tr>
+        <tr><td class="role">Tester <span class="grp">basic</span></td><td><span class="model">Composer 2.5 Fast</span></td><td><span class="tier tier-1">T1</span><span class="tval">Cheap, high volume</span></td><td>Fixtures, mock stubs, simple happy-path tests.</td></tr>
+        <tr><td class="role">Tester <span class="grp">suites</span></td><td><span class="model">Sonnet 4.6 High</span></td><td><span class="tier tier-2">T2</span><span class="tval">Handles ~90% of test gen</span></td><td>Test plans, edge-case suites, Playwright / Cypress / JUnit / TestNG scripts.</td></tr>
+        <tr><td class="role">DevOps <span class="grp">rote</span></td><td><span class="model">Composer 2.5 Fast</span></td><td><span class="tier tier-1">T1</span><span class="tval">Cheap repetitive IO</span></td><td>Repetitive YAML, log parsing scripts.</td></tr>
+        <tr><td class="role">DevOps <span class="grp">IaC</span></td><td><span class="model esc">GPT-5.5 High</span></td><td><span class="tier tier-3">T3</span><span class="tval">Leads Terminal-Bench</span></td><td>GitHub Actions, Terraform, Helm, incident analysis, runbooks. Preferred for complex IaC / shell reasoning.</td></tr>
+        <tr><td class="role">Data / ML Eng</td><td><span class="model">Sonnet 4.6 High</span> <span class="arrow">&rarr;</span> <span class="model esc">Opus 4.8</span></td><td><span class="tier tier-2">T2&ndash;T4</span><span class="tval">Escalate on math depth</span></td><td>Pipeline code, SQL, feature engineering, notebook &rarr; production. Opus for tricky algorithmic / numerical reasoning.</td></tr>
+        <tr><td class="role">Security</td><td><span class="model esc">Opus 4.8 High</span></td><td><span class="tier tier-4">T4</span><span class="tval">Accuracy &gt; cost here</span></td><td>Threat modelling, SAST triage, OWASP GenAI mapping, secure-code review. ~4&times; fewer overlooked flaws &mdash; worth the premium.</td></tr>
+        <tr><td class="role">Tech Writer</td><td><span class="model">Sonnet 4.6</span> / <span class="model">Composer 2.5</span></td><td><span class="tier tier-2">T1&ndash;T2</span><span class="tval">High value &middot; prose</span></td><td>API docs, runbooks, onboarding guides, ADR write-ups, release notes.</td></tr>
+        <tr><td class="role">Reviewer / PR Gate</td><td><span class="model">Sonnet 4.6 High</span> <span class="arrow">&rarr;</span> <span class="model esc">Opus 4.8</span></td><td><span class="tier tier-2">T2&ndash;T4</span><span class="tval">Opus for high-blast-radius</span></td><td>Diff review, style/standards enforcement, regression risk. Escalate to Opus for changes touching critical paths.</td></tr>
+        <tr><td class="role">EM / PO</td><td><span class="model">Sonnet 4.6</span></td><td><span class="tier tier-2">T2</span><span class="tval">Balanced reasoning</span></td><td>Backlog grooming, estimation support, status synthesis, stakeholder summaries.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="task">
+    <h2>Usage by Task</h2>
+    <p class="lead">Start cheap, escalate on failure or complexity. Cost column shows the band you move through start &rarr; escalate.</p>
+    <table>
+      <thead><tr><th>Task</th><th>Start with</th><th></th><th>Escalate to</th><th>Cost path</th></tr></thead>
+      <tbody>
+        <tr><td class="role">Writing new code</td><td><span class="model">Composer 2.5</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Sonnet 4.6 High</span></td><td><span class="tier tier-1">T1 &rarr; T2</span></td></tr>
+        <tr><td class="role">Debugging prod issue</td><td><span class="model">Sonnet 4.6 High</span></td><td class="arrow">&rarr;</td><td><span class="model esc">GPT-5.5 / Opus 4.8</span></td><td><span class="tier tier-2">T2 &rarr; T3</span></td></tr>
+        <tr><td class="role">Test generation</td><td><span class="model">Composer 2.5 Fast</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Sonnet 4.6 High</span></td><td><span class="tier tier-1">T1 &rarr; T2</span></td></tr>
+        <tr><td class="role">IaC / pipeline authoring</td><td><span class="model">Sonnet 4.6 High</span></td><td class="arrow">&rarr;</td><td><span class="model esc">GPT-5.5 High</span></td><td><span class="tier tier-2">T2 &rarr; T3</span></td></tr>
+        <tr><td class="role">Architecture decision</td><td><span class="model">Composer 2.5</span> / <span class="model">Sonnet</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Opus 4.8 High</span></td><td><span class="tier tier-1">T1 &rarr; T4</span></td></tr>
+        <tr><td class="role">BA documentation</td><td><span class="model">Composer 2.5</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Sonnet 4.6</span></td><td><span class="tier tier-1">T1 &rarr; T2</span></td></tr>
+        <tr><td class="role">Code / security review</td><td><span class="model">Sonnet 4.6 High</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Opus 4.8 High</span></td><td><span class="tier tier-2">T2 &rarr; T4</span></td></tr>
+        <tr><td class="role">Large-repo audit / dependency trace</td><td><span class="model">Opus 4.8</span> <span class="grp">(1M ctx)</span></td><td class="arrow">&rarr;</td><td><span class="model esc">&mdash;</span></td><td><span class="tier tier-4">T4</span></td></tr>
+        <tr><td class="role">Legacy modernization (RPG/AS400)</td><td><span class="model">Sonnet 4.6 High</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Opus 4.8 High</span></td><td><span class="tier tier-2">T2 &rarr; T4</span></td></tr>
+        <tr><td class="role">Bulk refactor / rename</td><td><span class="model">Composer 2.5</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Sonnet 4.6</span></td><td><span class="tier tier-1">T1 &rarr; T2</span></td></tr>
+        <tr><td class="role">Data analysis / SQL</td><td><span class="model">Sonnet 4.6 High</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Opus 4.8</span></td><td><span class="tier tier-2">T2 &rarr; T4</span></td></tr>
+        <tr><td class="role">Doc / spec drafting</td><td><span class="model">Sonnet 4.6</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Opus 4.8</span></td><td><span class="tier tier-2">T2 &rarr; T4</span></td></tr>
+        <tr><td class="role">High-volume classification / triage</td><td><span class="model">Haiku 4.5</span></td><td class="arrow">&rarr;</td><td><span class="model esc">Sonnet 4.6</span></td><td><span class="tier tier-1">T1 &rarr; T2</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="cost">
+    <h2>Cost &amp; Value Reference</h2>
+    <p class="lead">Public list pricing, USD per 1M tokens (input / output), as of 07 Jun 2026. Use this to read the tier bands in the other tabs. Value = quality delivered per dollar at the intended task band.</p>
+    <table>
+      <thead><tr><th>Model</th><th>Tier</th><th>Input / Output (per 1M)</th><th>Value sweet spot</th></tr></thead>
+      <tbody>
+        <tr><td><span class="model">Haiku 4.5</span></td><td><span class="tier tier-1">T1 Economy</span></td><td>~$1 / $5</td><td>Classification, triage, extraction, routing &mdash; highest throughput per dollar.</td></tr>
+        <tr><td><span class="model">Composer 2.5</span> <span class="grp">Cursor only</span></td><td><span class="tier tier-1">T1 Economy</span></td><td>$0.50 / $2.50 <span class="grp">Fast ~$3 / $15</span></td><td>Agentic in-IDE coding: scaffolding, bulk edits, simple tests. ~1/10th frontier cost. <b>Not available outside Cursor</b> &mdash; see Non-Cursor Swap tab.</td></tr>
+        <tr><td><span class="model">Sonnet 4.6</span></td><td><span class="tier tier-2">T2 Standard</span></td><td>$3 / $15</td><td>The daily driver. ~98% of Opus coding quality at ~40&ndash;60% of the cost. Best all-round value.</td></tr>
+        <tr><td><span class="model">Opus 4.8</span></td><td><span class="tier tier-4">T4 Top-end</span></td><td>$5 / $25 <span class="grp">Fast mode ~3&times; cheaper</span></td><td>Hard reasoning, security, final architecture, 1M-token audits, ~4&times; fewer missed flaws.</td></tr>
+        <tr><td><span class="model">GPT-5.5</span></td><td><span class="tier tier-3">T3 Premium</span></td><td>$5 / $30 <span class="grp">cached in $0.50</span></td><td>Terminal/IaC and complex agentic execution; leads Terminal-Bench. Cache-heavy agents claw cost back.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <h3>Routing economics &mdash; rules of thumb</h3>
+      <p><b>80/20 default:</b> route ~80% of work to T1&ndash;T2 (Composer / Sonnet); reserve T3&ndash;T4 for the ~20% that genuinely needs it. Defaulting everything to Opus/GPT-5.5 typically pays a large premium for marginal gain.</p>
+      <p><b>Cache aggressively:</b> stable system prompts and large repo context cached on GPT-5.5 (input drops ~90%) and Opus materially cut the effective bill for long-running agents.</p>
+      <p><b>Escalate, don't start high:</b> two failed Sonnet attempts is the trigger to move to T3&ndash;T4 &mdash; not the starting point.</p>
+    </div>
+    <div class="callout">
+      <h3>Azure-only constraint</h3>
+      <p>Confirm GPT-5.5 and each Claude tier are live in your Azure / Foundry region before locking this in &mdash; vendor GA dates lead Azure availability by some weeks, and list prices can differ from your negotiated Azure rate.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="noncursor">
+    <h2>Non-Cursor Equivalents</h2>
+    <p class="lead">Composer 2.5 is proprietary to Cursor &mdash; there is no API for it. For teams on VS Code, JetBrains, CLI agents, or any non-Cursor setup, these fill the same "cheap, fast, agentic-coding T1 band" role. Picks are filtered for Azure / Microsoft Foundry availability, since that is your constraint.</p>
+    <table>
+      <thead><tr><th>Swap in for Composer</th><th>Cost tier</th><th>Input / Output (per 1M)</th><th>Why / trade-off</th></tr></thead>
+      <tbody>
+        <tr><td class="role">GPT-5.2-Codex <span class="grp">recommended</span></td><td><span class="tier tier-1">T1&ndash;T2</span><span class="tval">Closest fit</span></td><td>$1.75 / $14</td><td>Dedicated agentic-coding API model built for long-horizon scaffolding, multi-file edits, terminal work. The nearest like-for-like to Composer's job. On Azure/Foundry. Slightly pricier on output.</td></tr>
+        <tr><td class="role">Haiku 4.5 <span class="grp">already in stack</span></td><td><span class="tier tier-1">T1</span><span class="tval">Cheapest Anthropic</span></td><td>$1 / $5</td><td>Matches Sonnet-4-class coding on simple tasks; cheapest per token of your Claude tiers, strong instruction-following. Best when prompts are cached. 200K context cap.</td></tr>
+        <tr><td class="role">GPT-5.4 Mini <span class="grp">budget</span></td><td><span class="tier tier-1">T1</span><span class="tval">Lowest input cost</span></td><td>$0.75 / $4.50</td><td>Fast, cheapest input of the majors for high-volume subagent steps. Caveat: GPT-5.4 family is in the sunset wave &mdash; treat as short-term only.</td></tr>
+        <tr><td class="role">Sonnet 4.6 <span class="grp">step up</span></td><td><span class="tier tier-2">T2</span><span class="tval">If quality slips</span></td><td>$3 / $15</td><td>The "little pricier" option you asked about &mdash; one tier up, near-Opus coding quality, universal availability. Use as the escalation target from any T1 swap.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <h3>Recommendation</h3>
+      <p><b>Default swap:</b> <b>GPT-5.2-Codex</b> wherever the original matrix says Composer 2.5 &mdash; it is the true functional equivalent (agentic, IDE/CLI-agnostic, Azure-available) at a modest premium.</p>
+      <p><b>If you'd rather stay all-Anthropic:</b> use <b>Haiku 4.5</b> for the rote T1 work and <b>Sonnet 4.6</b> as the "little pricier" daily driver. This keeps one vendor, one billing surface, and avoids the GPT-5.4 sunset risk.</p>
+      <p><b>Avoid for now:</b> Gemini 3 Flash / Flash-Lite are cheaper still and strong on coding, but Google models are not on Azure &mdash; they'd break your single-cloud routing constraint.</p>
+    </div>
+    <div class="callout">
+      <h3>Drop-in mapping</h3>
+      <p>Composer 2.5 (scaffolding / bulk / rote) &rarr; <b>GPT-5.2-Codex</b> or <b>Haiku 4.5</b> &nbsp;&middot;&nbsp; Composer 2.5 Fast (cheap test/YAML) &rarr; <b>Haiku 4.5</b> &nbsp;&middot;&nbsp; the "explore" half of the Architect row &rarr; <b>Sonnet 4.6</b> before escalating to Opus 4.8.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="copilot">
+    <h2>If You're on GitHub Copilot</h2>
+    <p class="lead">Copilot doesn't bill per token in the chat/agent experience &mdash; it bills <b>premium requests</b>, each model carrying a multiplier against your monthly allowance. The routing logic still holds, but "cost tier" now means multiplier, not $/M. Three structural differences change the picture.</p>
+
+    <div class="callout">
+      <h3>What changes vs. raw API</h3>
+      <p><b>1. Composer 2.5 is irrelevant here</b> &mdash; it's Cursor-only and never appears in Copilot. Use GPT-5.2-Codex or Haiku 4.5 in its place.</p>
+      <p><b>2. Gemini is gone</b> &mdash; all Gemini models were removed from Copilot Chat on the web (May 2026). Verify your IDE picker, but don't plan around Gemini.</p>
+      <p><b>3. Auto mode</b> picks the model from a 1x-or-lower pool and gives a 10% multiplier discount in Chat &mdash; a good default for routine work; override manually for the hard 20%.</p>
+    </div>
+
+    <h2 style="font-size:20px;margin-top:30px;">Multiplier-based tiers</h2>
+    <p class="lead">Premium-request multipliers as of mid-2026. Lower = cheaper against your allowance. Confirm in your own picker &mdash; these shift often.</p>
+    <table>
+      <thead><tr><th>Copilot model</th><th>Multiplier</th><th>Maps to tier</th><th>Use for</th></tr></thead>
+      <tbody>
+        <tr><td><span class="model">Haiku 4.5</span></td><td><span class="tier tier-1">0.33x</span><span class="tval">cheapest Claude</span></td><td><span class="tier tier-1">T1 Economy</span></td><td>Scaffolding, bulk edits, simple tests, completions &mdash; the Composer-replacement lane.</td></tr>
+        <tr><td><span class="model">GPT-5.2-Codex</span></td><td><span class="tier tier-1">1x</span><span class="tval">included tier</span></td><td><span class="tier tier-1">T1&ndash;T2</span></td><td>Agentic coding, long-horizon multi-file work. Best Composer-equivalent in Copilot.</td></tr>
+        <tr><td><span class="model">Sonnet 4.6</span></td><td><span class="tier tier-2">1x</span><span class="tval">best-value driver</span></td><td><span class="tier tier-2">T2 Standard</span></td><td>Daily feature work, test suites, IaC authoring, reviews. The workhorse.</td></tr>
+        <tr><td><span class="model">GPT-5.5</span></td><td><span class="tier tier-3">7.5x</span><span class="tval">promo rate</span></td><td><span class="tier tier-3">T3 Premium</span></td><td>Complex debugging, terminal/IaC escalation. Spendy &mdash; reserve for genuine escalation.</td></tr>
+        <tr><td><span class="model esc">Opus 4.7</span></td><td><span class="tier tier-4">15x</span><span class="tval">most expensive</span></td><td><span class="tier tier-4">T4 Top-end</span></td><td>Final architecture, security, high-blast-radius review. Note: Copilot tops out at Opus 4.7, not 4.8.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <h3>Practical guidance</h3>
+      <p><b>For most everyday work, use Auto or Sonnet 4.6.</b> They do the job well and only cost you 1 request each, so you won't run through your monthly allowance quickly.</p>
+      <p><b>For simple, repetitive jobs, switch to Haiku 4.5.</b> It only costs a third of a request, so you can do about three times as much before using up your allowance.</p>
+      <p><b>Save GPT-5.5 and Opus 4.7 for the hard problems.</b> They're powerful but expensive: a single Opus request uses up as much of your allowance as roughly 45 Haiku requests. Only reach for them when Sonnet has actually tried and failed.</p>
+      <p><b>Can't find a model in the list?</b> On Business and Enterprise plans, your IT admin has to switch each model on before it shows up. If one you expect is missing, ask them to enable it.</p>
+    </div>
+    <p class="disc">Copilot's available models and multipliers change frequently and differ by surface (web chat vs VS Code vs JetBrains vs CLI) and plan. Verify in your own model picker.</p>
+  </section>
+
+  <footer>
+    Pricing and model availability are fast-moving &mdash; re-validate quarterly. List rates from vendor pricing pages, June 2026; your enterprise/Azure rates may differ.
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.p).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
