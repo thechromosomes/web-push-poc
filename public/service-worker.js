@@ -13,7 +13,8 @@ globalThis.addEventListener('activate', (event) => {
 
 // ─── Push Event ───────────────────────────────────────────────────────────────
 globalThis.addEventListener('push', (event) => {
-  console.log('[SW] Push received');
+  console.log('[SW] Push event received:', event);
+  console.log('[SW] Push data:', event.data);
 
   let data = {
     title: '🔔 Notification',
@@ -27,6 +28,7 @@ globalThis.addEventListener('push', (event) => {
   if (event.data) {
     try {
       data = { ...data, ...JSON.parse(event.data.text()) };
+      console.log('[SW] Parsed payload:', data);
     } catch (e) {
       console.warn('[SW] Push payload was not JSON, using raw text payload', e);
       data.body = event.data.text();
@@ -39,7 +41,6 @@ globalThis.addEventListener('push', (event) => {
     badge: data.badge,
     tag: data.tag,          // deduplicate notifications with same tag
     renotify: true,         // re-vibrate even if same tag
-    requireInteraction: false,
     vibrate: [200, 100, 200],
     data: { url: data.url },
     actions: [
@@ -48,8 +49,11 @@ globalThis.addEventListener('push', (event) => {
     ]
   };
 
+  console.log('[SW] Showing notification with options:', options);
   event.waitUntil(
     globalThis.registration.showNotification(data.title, options)
+      .then(() => console.log('[SW] Notification shown successfully'))
+      .catch(err => console.error('[SW] Failed to show notification:', err))
   );
 });
 

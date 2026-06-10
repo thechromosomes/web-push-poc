@@ -282,9 +282,11 @@
       return;
     }
 
-    // Register service worker
+    // Register service worker (explicit scope for Chrome compatibility)
     try {
-      swRegistration = await navigator.serviceWorker.register('/service-worker.js');
+      swRegistration = await navigator.serviceWorker.register('/service-worker.js', {
+        scope: '/'
+      });
       log('Service worker registered ✅', 'ok');
     } catch (e) {
       const message = getErrorMessage(e);
